@@ -1,6 +1,6 @@
 int led = 13;
 
-int hz = 1;
+int hz = 60;
 
 int enA = 10;
 int in1 = 9;
@@ -26,7 +26,7 @@ void setup() {
 
   digitalWrite(in1, LOW);
 	digitalWrite(in2, HIGH);
-  analogWrite(enA, 40);
+  analogWrite(enA, 0);
 
 }
 
@@ -35,16 +35,26 @@ void loop() {
 
   // strobe();
 
-  int reading = analogRead(pot);
-  int value = map(reading, 0, 1023, 0, 10);   //Read and save analog value from potentiometer
-  // Serial.println(value);
-  
+  float reading = analogRead(pot);
+  float value = mapfloat(reading, 0, 1023, 0, 255);
+  Serial.print("original reading: "); 
+  Serial.print(reading);
+  Serial.print(" and mapped value: ");
+  Serial.println(value);
+
+  analogWrite(enA, value);
+
   digitalWrite(led, HIGH);
-  delay(2);
+  delay(10);
   digitalWrite(led, LOW);
-  delay(value);  
+  delay(10);  
 
 
+}
+
+float mapfloat(float x, float in_min, float in_max, float out_min, float out_max)
+{
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
 void directionControl() {
