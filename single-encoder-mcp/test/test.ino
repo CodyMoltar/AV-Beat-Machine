@@ -31,40 +31,91 @@ void intCallBack();
 void cleanInterrupts();
 void handleInterrupt();
 void RotaryEncoderChanged(bool clockwise, int id);
+void changeLightFrequency(bool clockwise, int id);
+void changeMotorSpeed(bool clockwise, int id);
 
 /* Array of all rotary encoders and their pins */
 RotaryEncOverMCP rotaryEncoders[] = {
-  // outputA,B on GPB7,GPB6, register with callback and ID=1 (GPB0=7 .. GPB7=15)
-  RotaryEncOverMCP(&mcp, 0, 1, &RotaryEncoderChanged, 1),
-  // outputA,B on GPA0,GPA1, register with callback and ID=2
-  RotaryEncOverMCP(&mcp, 2, 3, &RotaryEncoderChanged, 2),
-  RotaryEncOverMCP(&mcp, 4, 5, &RotaryEncoderChanged, 3),
-  RotaryEncOverMCP(&mcp, 6, 7, &RotaryEncoderChanged, 4),
-  RotaryEncOverMCP(&mcp, 8, 9, &RotaryEncoderChanged, 5),
-  RotaryEncOverMCP(&mcp, 10, 11, &RotaryEncoderChanged, 6),
-  RotaryEncOverMCP(&mcp, 12, 13, &RotaryEncoderChanged, 7),
-  RotaryEncOverMCP(&mcp, 15, 14, &RotaryEncoderChanged, 8)
+
+  // adding the encoders in this scheme:
+  // 0 = even = LED controller
+  // 1 = odd  = motor controller
+
+  // instrument 1
+  // LED
+  RotaryEncOverMCP(&mcp, 15, 14, &changeLightFrequency, 0),
+  // MOTOR
+  RotaryEncOverMCP(&mcp, 0, 1, &changeLightFrequency, 1),
+
+  // instrument 2
+  // LED
+  RotaryEncOverMCP(&mcp, 2, 3, &changeLightFrequency, 2),
+  // MOTOR
+  RotaryEncOverMCP(&mcp, 4, 5, &changeLightFrequency, 3),
+
+  // instrument 3
+  // LED
+  RotaryEncOverMCP(&mcp, 6, 7, &changeMotorSpeed, 0),
+  // MOTOR
+  RotaryEncOverMCP(&mcp, 8, 9, &changeMotorSpeed, 1),
+
+  // instrument 4
+  // LED
+  RotaryEncOverMCP(&mcp, 10, 11, &changeMotorSpeed, 2),
+  // MOTOR
+  RotaryEncOverMCP(&mcp, 12, 13, &changeMotorSpeed, 3)
+  
 };
 constexpr int numEncoders = (int)(sizeof(rotaryEncoders) / sizeof(*rotaryEncoders));
 
-int hz = 1;
 
-void RotaryEncoderChanged(bool clockwise, int id) {
-  // Serial.println("Encoder " + String(id) + ": "
-  //                + (clockwise ? String("clockwise") : String("counter-clock-wise"))
-  //                + " and hz: " + String(hz));
-  if(clockwise){
-    if(hz > 1){
-      hz--;
-    }
+// starting values for the motors and leds;
+int hz[4] = {1,1,1,1};
+int speed[4] = {0,0,0,0};
+
+// display connectios
+int hz_displays[4][3] = {
+  {},
+  {},
+  {},
+  {}
+}
+
+// instrument pin connections 
+int instruments[4][4] = {
+  // LED, motorpin A, motorpin B, motorEnablepin
+  {0, 1, 2, A0},
+  {4, 5, 6, A1},
+  {7, 8, 9, A2},
+  {10, 11, 12, A3}
+};
+
+void changeLightFrequency(bool clockwise, int id) {
+  
+  if(clockwise && hz[id] < 500){
+    hz[id]++;
   }
-  else{
-    if(hz < 100){
-      hz++;
-    }
+
+  if(!clockwise && speed[id] > 1) {
+    speed[id]--;
   }
 
 
+}
+
+void changeMotorSpeed(bool clockwise, int id) {
+  
+  if(clockwise && speed[id] < 255){
+
+    speed[id]++;
+    analogWrite(instruments[id][3], speed[id]);
+
+  }
+
+  if(!clockwise && speed[id] > 0) {
+    speed[id]--;
+    analogWrite(instruments[id][3], speed[id]);
+  }
 
 }
 
@@ -158,22 +209,7 @@ void cleanInterrupts() {
 
 void loop() {
 
-  unsigned long currentMillis = millis();
 
-  if (currentMillis - previousMillis >= 1000/hz) {
-    // save the last time you blinked the LED
-    previousMillis = currentMillis;
-
-    // if the LED is off turn it on and vice-versa:
-    if (ledState == LOW) {
-      ledState = HIGH;
-    } else {
-      ledState = LOW;
-    }
-
-    // set the LED with the ledState of the variable:
-    digitalWrite(ledPin, ledState);
-  }
   //Check if an interrupt has occurred and act on it
   checkInterrupt();
 }
