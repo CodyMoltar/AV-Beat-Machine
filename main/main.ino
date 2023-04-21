@@ -26,7 +26,7 @@ void setup() {
 
   digitalWrite(in1, LOW);
 	digitalWrite(in2, HIGH);
-  analogWrite(enA, 0);
+  analogWrite(enA, 30);
 
 }
 
@@ -35,19 +35,19 @@ void loop() {
 
   // strobe();
 
-  float reading = analogRead(pot);
-  float value = mapfloat(reading, 0, 1023, 0, 255);
-  Serial.print("original reading: "); 
-  Serial.print(reading);
-  Serial.print(" and mapped value: ");
-  Serial.println(value);
+  // float reading = analogRead(pot);
+  // float value = mapfloat(reading, 0, 1023, 0, 255);
+  // Serial.print("original reading: "); 
+  // Serial.print(reading);
+  // Serial.print(" and mapped value: ");
+  // Serial.println(value);
 
-  analogWrite(enA, value);
+  // analogWrite(enA, value);
 
-  digitalWrite(led, HIGH);
-  delay(10);
-  digitalWrite(led, LOW);
-  delay(10);  
+  // digitalWrite(led, HIGH);
+  // delay(10);
+  // digitalWrite(led, LOW);
+  // delay(10);  
 
 
 }
