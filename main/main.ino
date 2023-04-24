@@ -36,29 +36,6 @@ void handleInterrupt();
 void changeLightFrequency(bool clockwise, int id);
 void changeMotorSpeed(bool clockwise, int id);
 
-/* Array of all rotary encoders and their pins */
-RotaryEncOverMCP rotaryEncoders[] = {
-
-  // instrument 1
-  RotaryEncOverMCP(&mcp, 15, 14, &changeLightFrequency, 0),
-  RotaryEncOverMCP(&mcp, 0, 1, &changeMotorSpeed, 0),
-
-  // instrument 2
-  RotaryEncOverMCP(&mcp, 2, 3, &changeLightFrequency, 1),
-  RotaryEncOverMCP(&mcp, 4, 5, &changeMotorSpeed, 1),
-
-  // instrument 3
-  RotaryEncOverMCP(&mcp, 6, 7, &changeLightFrequency, 2),
-  RotaryEncOverMCP(&mcp, 8, 9, &changeMotorSpeed, 2),
-
-  // instrument 4
-  RotaryEncOverMCP(&mcp, 10, 11, &changeLightFrequency, 3),
-  RotaryEncOverMCP(&mcp, 12, 13, &changeMotorSpeed, 3)
-  
-};
-constexpr int numEncoders = (int)(sizeof(rotaryEncoders) / sizeof(*rotaryEncoders));
-
-
 // add all instruments to the array
 int instruments[4] = {
 	instrument1,
@@ -66,6 +43,80 @@ int instruments[4] = {
 	instrument3,
 	instrument4
 }
+
+/* Array of all rotary encoders and their pins */
+RotaryEncOverMCP rotaryEncoders[] = {
+
+  // instrument 1
+  RotaryEncOverMCP(
+    &mcp,
+    instrument1.motor_rotary_A,
+    instrument1.motor_rotary_B
+    , &changeMotorSpeed,
+    0
+  ),
+  RotaryEncOverMCP(
+    &mcp,
+    instrument1.LED_rotary_A,
+    instrument1.LED_rotary_B,
+    &changeLightFrequency,
+    0
+  ),
+
+  // instrument 2
+  RotaryEncOverMCP(
+    &mcp,
+    instrument2.motor_rotary_A,
+    instrument2.motor_rotary_B
+    , &changeMotorSpeed,
+    1
+  ),
+  RotaryEncOverMCP(
+    &mcp,
+    instrument2.LED_rotary_A,
+    instrument2.LED_rotary_B,
+    &changeLightFrequency,
+    1
+  ),
+
+  // instrument 3
+  RotaryEncOverMCP(
+    &mcp,
+    instrument3.motor_rotary_A,
+    instrument3.motor_rotary_B
+    , &changeMotorSpeed,
+    2
+  ),
+  RotaryEncOverMCP(
+    &mcp,
+    instrument3.LED_rotary_A,
+    instrument3.LED_rotary_B,
+    &changeLightFrequency,
+    2
+  ),
+
+  // instrument 4
+  RotaryEncOverMCP(
+    &mcp,
+    instrument4.motor_rotary_A,
+    instrument4.motor_rotary_B
+    , &changeMotorSpeed,
+    1
+  ),
+  RotaryEncOverMCP(
+    &mcp,
+    instrument4.LED_rotary_A,
+    instrument4.LED_rotary_B,
+    &changeLightFrequency,
+    3
+  )
+  
+};
+
+constexpr int numEncoders = (int)(sizeof(rotaryEncoders) / sizeof(*rotaryEncoders));
+
+
+
 
 // calculate the number of instruments
 int number_of_instruments[sizeof(sensor)];
@@ -78,29 +129,29 @@ for(int i = 0; i < number_of_instruments; i++){
 
 void changeLightFrequency(bool clockwise, int id) {
   
-  if(clockwise && hz[id] < 500){
-    hz[id]++;
+  if(clockwise && instruments[id].led_hz < 500){
+    instruments[id].led_hz++;
   }
-
-  if(!clockwise && speed[id] > 1) {
-    speed[id]--;
+  if(!clockwise && instruments[id].led_hz > 1){
+    instruments[id].led_hz--
   }
-
 
 }
 
 void changeMotorSpeed(bool clockwise, int id) {
   
-  if(clockwise && speed[id] < 255){
+  if(clockwise && instruments[id].motor_speed_pwm < 255){
 
-    speed[id]++;
-    analogWrite(instruments[id][3], speed[id]);
+    instruments[id].motor_speed_pwm++;
+    analogWrite(instruments[id].motor_enable, instruments[id].motor_speed_pwm);
 
   }
 
-  if(!clockwise && speed[id] > 0) {
-    speed[id]--;
-    analogWrite(instruments[id][3], speed[id]);
+  if(!clockwise && instruments[id].motor_speed_pwm > 0){
+
+    instruments[id].motor_speed_pwm--;
+    analogWrite(instruments[id].motor_enable, instruments[id].motor_speed_pwm);
+
   }
 
 }
@@ -120,29 +171,56 @@ unsigned long previousMillis = 0;  // will store last time LED was updated
 
 void setup() {
 
-  pinMode(ledPin, OUTPUT);
+  for(int i = 0; i < 4; i++){
 
+    // LED
+    pinMode(instrument[i].LED, OUTPUT);
+    digitalWrite(instrument[i].LED, LOW);
 
-  // Serial.begin(115200);
-  // Serial.println("MCP23007 Interrupt Test");
+    // MOTOR A
+    pinMode(instrument[i].motor_A, OUTPUT);
+    digitalWrite(instrument[i].motor_A, LOW);
 
+    // MOTOR B
+    pinMode(instrument[i].motor_B, OUTPUT);
+    digitalWrite(instrument[i].motor_B, LOW);
+
+    // MOTOR E
+    pinMode(instrument[i].motor_enable, OUTPUT);
+    analogWrite(instrument[i].motor_enable, 0);
+
+    // DISPLAY din
+    pinMode(instrument[i].display_din, OUTPUT);
+    digitalWrite(instrument[i].display_din, LOW);
+
+    // DISPLAY clock
+    pinMode(instrument[i].display_clock, OUTPUT);
+    digitalWrite(instrument[i].display_clock, LOW);
+
+    // DISPLAY cs
+    pinMode(instrument[i].display_cs, OUTPUT);
+    digitalWrite(instrument[i].display_cs, LOW);
+
+  }
+
+  
+
+  // set up the mcp for the rotary encoders
+  Serial.begin(115200);
+  Serial.println("MCP23007 Interrupt Test");
   pinMode(arduinoIntPin, INPUT);
-
   mcp.begin();         // use default address 0
   mcp.readINTCAPAB();  //read this so that the interrupt is cleared
-
   //initialize all rotary encoders
-
   //Setup interrupts, OR INTA, INTB together on both ports.
   //thus we will receive an interrupt if something happened on
   //port A or B with only a single INT connection.
   mcp.setupInterrupts(true, false, LOW);
-
   //Initialize input encoders (pin mode, interrupt)
   for (int i = 0; i < numEncoders; i++) {
     rotaryEncoders[i].init();
   }
-
+  pinMode(ledPin, OUTPUT);
   attachInterrupt(digitalPinToInterrupt(arduinoIntPin), intCallBack, FALLING);
 }
 
