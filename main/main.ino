@@ -4,7 +4,6 @@
 #include <Rotary.h>
 #include <RotaryEncOverMCP.h>
 
-// move all pin connections to seperate header file later
 #include <pinConnections.h>
 
 #if defined(ESP32) || defined(ESP8266)
@@ -43,6 +42,8 @@ int instruments[4] = {
 	instrument3,
 	instrument4
 }
+
+int number_of_instruments = 4;
 
 /* Array of all rotary encoders and their pins */
 RotaryEncOverMCP rotaryEncoders[] = {
@@ -115,12 +116,6 @@ RotaryEncOverMCP rotaryEncoders[] = {
 
 constexpr int numEncoders = (int)(sizeof(rotaryEncoders) / sizeof(*rotaryEncoders));
 
-
-
-
-// calculate the number of instruments
-int number_of_instruments[sizeof(sensor)];
-
 // set all initial led frequencies and motor speeds
 for(int i = 0; i < number_of_instruments; i++){
 	instruments[i].led_hz = 1;
@@ -156,26 +151,18 @@ void changeMotorSpeed(bool clockwise, int id) {
 
 }
 
-// constants won't change. Used here to set a pin number:
-const int ledPin = LED_BUILTIN;  // the number of the LED pin
-
-// Variables will change:
-int ledState = LOW;  // ledState used to set the LED
-
-// Generally, you should use "unsigned long" for variables that hold time
-// The value will quickly become too large for an int to store
-unsigned long previousMillis = 0;  // will store last time LED was updated
-
-// constants won't change:
-
 
 void setup() {
 
-  for(int i = 0; i < 4; i++){
+  // set up all pinmodes and initial values for motor per instrument
+  for(int i = 0; i < number_of_instruments; i++){
 
     // LED
-    pinMode(instrument[i].LED, OUTPUT);
-    digitalWrite(instrument[i].LED, LOW);
+    pinMode(instrument[i].LED_pin, OUTPUT);
+    digitalWrite(instrument[i].LED_pin, LOW);
+
+    instrument[i].LED_state = LOW;
+    instrument[i].LED_previousMillis = 0;
 
     // MOTOR A
     pinMode(instrument[i].motor_A, OUTPUT);
@@ -187,7 +174,7 @@ void setup() {
 
     // MOTOR E
     pinMode(instrument[i].motor_enable, OUTPUT);
-    analogWrite(instrument[i].motor_enable, 0);
+    analogWrite(instrument[i].motor_enable, instruments[i].motor_speed_pwm);
 
     // DISPLAY din
     pinMode(instrument[i].display_din, OUTPUT);
@@ -272,6 +259,29 @@ void cleanInterrupts() {
 }
 
 void loop() {
+
+
+  unsigned long currentMillis = millis();
+
+  for(int i = 0; i < 4; i++){
+
+    instrument[i].LED_previousMillis = millis();
+
+    if (currentMillis - instrument[i].LED_previousMillis >= 1000/instrument[i].LED_hz) {
+      // save the last time you blinked the LED
+      instrument[i].LED_previousMillis = currentMillis;
+
+      // if the LED is off turn it on and vice-versa:
+      if (instrument[i].LED_state == LOW) {
+        instrument[i].LED_state = HIGH;
+      } else {
+        instrument[i].LED_state = LOW;
+      }
+
+      // set the LED with the ledState of the variable:
+      digitalWrite(instrument[i].LED_pin, instrument[i].LED_state);
+    }
+  }
 
 
   //Check if an interrupt has occurred and act on it
