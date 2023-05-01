@@ -4,7 +4,7 @@
 #include <Rotary.h>
 #include <RotaryEncOverMCP.h>
 
-#include <pinConnections.h>
+#include "pinConnections.h"
 
 #if defined(ESP32) || defined(ESP8266)
 #define INTERRUPT_FUNC_ATTRIB IRAM_ATTR
@@ -36,12 +36,9 @@ void changeLightFrequency(bool clockwise, int id);
 void changeMotorSpeed(bool clockwise, int id);
 
 // add all instruments to the array
-int instruments[4] = {
-	instrument1,
-	instrument2,
-	instrument3,
-	instrument4
-}
+int instruments[1] = {
+	instrument1
+};
 
 int number_of_instruments = 4;
 

@@ -20,37 +20,40 @@
 // #define instrument_1_display_cs 7
 
 struct instrument{
-    int LED;
+    int LED_pin;
     int LED_rotary_A;
     int LED_rotary_B;
+
+    int LED_state;
+    unsigned long LED_previousMillis;
+    int LED_hz;
 
     int motor_A;
     int motor_B;
     int motor_enable;
+
+    int motor_speed_pwm;
 
     int motor_rotary_A;
     int motor_rotary_B;
 
     int display_din;
     int display_clock;
-    int display_cs;
-
-    int led_hz;
-    int motor_speed_pwm;
+    int display_cs; 
 }
 
 instrument instrument1 = {
-    0,  // LED
-    0,  // LED encoder A
-    1,  // LED encoder B
+    13,  // LED
+    6,  // LED encoder A
+    7,  // LED encoder B
     1,  // motor controller A
     2,  // motor controller B
-    A0, // motor controller enable
-    2,  // motor encoder A
-    3,  // motor encoder B
-    4,  // 7-segment-display din
-    5,  // 7-segment-display clock
-    6   // 7-segment-display cs
+    5, // motor controller enable
+    4,  // motor encoder A
+    5,  // motor encoder B
+    6,  // 7-segment-display din
+    7,  // 7-segment-display clock
+    8   // 7-segment-display cs
 }
 
 instrument instrument2 = {
