@@ -11,7 +11,6 @@
 // int light_off_time_ms = total_period - light_on_time_ms;
 
 
-
 int instrument[3][7] = {
 //    hz  -  light_on  -  light_on_time  -  total_period  -  light_off_time  -  ledpin
     {100, false, 500, 0, 0, 2, 0},
