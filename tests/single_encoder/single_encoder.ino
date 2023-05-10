@@ -6,7 +6,12 @@
 
 #include "LedControl.h"
 
-LedControl lc=LedControl(8,9,10,1);
+LedControl displays[4] = {
+  LedControl(8,9,10,1),
+  LedControl(11,13,12,1),
+  LedControl(5,7,6,1),
+  LedControl(32,34,36,1)
+};
 
 int hz = 35;
 int motorspeed = 0;
@@ -57,61 +62,50 @@ void changeMotor(bool clockwise, int id);
 /* Array of all rotary encoders and their pins */
 RotaryEncOverMCP rotaryEncoders[] = {
     // outputA,B on GPB7,GPB6, register with callback and ID=1 (GPB0=7 .. GPB7=15)
-    RotaryEncOverMCP(&mcp, 7, 6, &changeMotor, 0),
-    RotaryEncOverMCP(&mcp, 5, 4, &changeLight, 0)
+    RotaryEncOverMCP(&mcp, 0, 1, &changeMotor, 0),
+    RotaryEncOverMCP(&mcp, 2, 3, &changeLight, 0)
+
+    RotaryEncOverMCP(&mcp, 4, 5, &changeMotor, 1),
+    RotaryEncOverMCP(&mcp, 6, 7, &changeLight, 1)
+
+    RotaryEncOverMCP(&mcp, 8, 9, &changeMotor, 2),
+    RotaryEncOverMCP(&mcp, 10, 11, &changeLight, 2)
+
+    RotaryEncOverMCP(&mcp, 12, 13, &changeMotor, 3),
+    RotaryEncOverMCP(&mcp, 14, 15, &changeLight, 3)
 };
 constexpr int numEncoders = (int)(sizeof(rotaryEncoders) / sizeof(*rotaryEncoders));
 
-void RotaryEncoderChanged(bool clockwise, int id) {
-    Serial.println("Encoder " + String(id) + ": "
-            + (clockwise ? String("clockwise") : String("counter-clock-wise")));
-}
-
-int updateLightNumber(int value){
-
-  int thousands = value%10000;
-  int hundreds = value%1000;
-  int tens = value%100;
-  int ones = value%10;
-
-  int seperatedValues[4] = {thousands, hundreds, tens, ones};
-
-  return seperatedValues;
-}
 
 void changeLight(bool clockwise, int id) {
 
   if(clockwise){
     if(hz < 1000){
       hz++;
-      lc.clearDisplay(0);
-      lc.setDigit(0,3,(hz/1000)%10,false);
-      lc.setDigit(0,2,(hz/100)%10,false);
-      lc.setDigit(0,1,(hz/10)%10,false);
-      lc.setDigit(0,0,hz%10,false);
-      lc.setDigit(0,3,(hz/1000)%10,false);
-      lc.setDigit(0,2,(hz/100)%10,false);
-      lc.setDigit(0,1,(hz/10)%10,false);
-      lc.setDigit(0,0,hz%10,false);
-      lc.setDigit(0,7,(motorspeed/1000)%10,false);
-      lc.setDigit(0,6,(motorspeed/100)%10,false);
-      lc.setDigit(0,5,(motorspeed/10)%10,false);
-      lc.setDigit(0,4,motorspeed%10,false);
+      displays[id].clearDisplay(0);
+      displays[id].setDigit(0,3,(hz/1000)%10,false);
+      displays[id].setDigit(0,2,(hz/100)%10,false);
+      displays[id].setDigit(0,1,(hz/10)%10,false);
+      displays[id].setDigit(0,0,hz%10,false);
+      displays[id].setDigit(0,7,(motorspeed/1000)%10,false);
+      displays[id].setDigit(0,6,(motorspeed/100)%10,false);
+      displays[id].setDigit(0,5,(motorspeed/10)%10,false);
+      displays[id].setDigit(0,4,motorspeed%10,false);
       tone(ledPin, hz);
     }
   }
   else{
     if(hz > 0){
       hz--;
-      lc.clearDisplay(0);
-      lc.setDigit(0,3,(hz/1000)%10,false);
-      lc.setDigit(0,2,(hz/100)%10,false);
-      lc.setDigit(0,1,(hz/10)%10,false);
-      lc.setDigit(0,0,hz%10,false);
-      lc.setDigit(0,7,(motorspeed/1000)%10,false);
-      lc.setDigit(0,6,(motorspeed/100)%10,false);
-      lc.setDigit(0,5,(motorspeed/10)%10,false);
-      lc.setDigit(0,4,motorspeed%10,false);
+      displays[id].clearDisplay(0);
+      displays[id].setDigit(0,3,(hz/1000)%10,false);
+      displays[id].setDigit(0,2,(hz/100)%10,false);
+      displays[id].setDigit(0,1,(hz/10)%10,false);
+      displays[id].setDigit(0,0,hz%10,false);
+      displays[id].setDigit(0,7,(motorspeed/1000)%10,false);
+      displays[id].setDigit(0,6,(motorspeed/100)%10,false);
+      displays[id].setDigit(0,5,(motorspeed/10)%10,false);
+      displays[id].setDigit(0,4,motorspeed%10,false);
       tone(ledPin, hz);
     }
   }
@@ -125,15 +119,15 @@ void changeMotor(bool clockwise, int id) {
   if(clockwise){
     if(motorspeed < 255){
       motorspeed++;
-      lc.clearDisplay(0);
-      lc.setDigit(0,3,(hz/1000)%10,false);
-      lc.setDigit(0,2,(hz/100)%10,false);
-      lc.setDigit(0,1,(hz/10)%10,false);
-      lc.setDigit(0,0,hz%10,false);
-      lc.setDigit(0,7,(motorspeed/1000)%10,false);
-      lc.setDigit(0,6,(motorspeed/100)%10,false);
-      lc.setDigit(0,5,(motorspeed/10)%10,false);
-      lc.setDigit(0,4,motorspeed%10,false);
+      displays[di].clearDisplay(0);
+      displays[id].setDigit(0,3,(hz/1000)%10,false);
+      displays[id].setDigit(0,2,(hz/100)%10,false);
+      displays[id].setDigit(0,1,(hz/10)%10,false);
+      displays[id].setDigit(0,0,hz%10,false);
+      displays[id].setDigit(0,7,(motorspeed/1000)%10,false);
+      displays[id].setDigit(0,6,(motorspeed/100)%10,false);
+      displays[id].setDigit(0,5,(motorspeed/10)%10,false);
+      displays[id].setDigit(0,4,motorspeed%10,false);
       analogWrite(motorE, motorspeed);
     }
   }
@@ -152,8 +146,6 @@ void changeMotor(bool clockwise, int id) {
       analogWrite(motorE, motorspeed);
     }
   }
-
-  
 
   Serial.println("Light Hz: " + String(hz) + "     Motorspeed: " + String(motorspeed));
   
@@ -261,5 +253,4 @@ void cleanInterrupts(){
 void loop() {
   //Check if an interrupt has occurred and act on it
   checkInterrupt();
-
 }
