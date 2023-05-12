@@ -17,10 +17,10 @@ int lights[number_of_instruments] = {
 };
 
 int light_frequencies[number_of_instruments] = {
-  1,
-  1,
-  1,
-  1
+  0,
+  0,
+  0,
+  0
 };
 
 int ledStates[number_of_instruments] = {
@@ -111,7 +111,7 @@ void changeLight(bool clockwise, int id) {
     }
   }
   else{
-    if(light_frequencies[id] > 1){
+    if(light_frequencies[id] > 0){
       light_frequencies[id]--;
       update_displays(id);
     }
@@ -255,6 +255,14 @@ void loop() {
   unsigned long currentMicros = micros();
 
   for(int i = 0; i < 4; i++){
+
+    if(light_frequencies[i] == 0){
+      if(ledStates[i] == LOW){
+        ledStates[i] = HIGH;
+        digitalWrite(lights[i], ledStates[i]);
+      }
+    }
+
     if (currentMicros - previousMicros[i] >= 500000 / light_frequencies[i]) {
       // save the last time you blinked the LED
       previousMicros[i] = currentMicros;
